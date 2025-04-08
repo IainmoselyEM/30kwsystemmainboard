@@ -299,14 +299,15 @@ epwm2.epwmEventTrigger_EPWM_SOC_A_triggerEnable                = true;
 epwm2.epwmEventTrigger_EPWM_SOC_A_triggerSource                = "EPWM_SOC_TBCTR_ZERO";
 epwm2.epwmEventTrigger_EPWM_SOC_A_triggerEventPrescalar        = "1";
 
-eqep1.$name                       = "ChannelA";
+eqep1.$name                       = "ENC2";
+eqep1.enableModule                = true;
 eqep1.eqep.$assign                = "EQEP3";
 eqep1.eqep.eqep_aPin.$assign      = "GPIO104";
 eqep1.eqep.eqep_bPin.$assign      = "GPIO105";
 eqep1.eqep.eqep_strobePin.$assign = "GPIO106";
 eqep1.eqep.eqep_indexPin.$assign  = "GPIO107";
 
-eqep2.$name                       = "ChannelB";
+eqep2.$name                       = "ENC1";
 eqep2.eqep.$assign                = "EQEP5";
 eqep2.eqep.eqep_aPin.$assign      = "GPIO108";
 eqep2.eqep.eqep_bPin.$assign      = "GPIO109";
