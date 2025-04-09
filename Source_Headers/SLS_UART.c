@@ -127,6 +127,10 @@ void TransmitUartMessage(void)
     Length=Length+sprintf((char *)(txData+Length),"\r\nFan 1 Local Temperature =  %d degC", Value);
     Value= (int16_t)GetPowerCycles();
     Length=Length+sprintf((char *)(txData+Length),"\r\nPower Cycles = %4d ", Value);
+    Value= (int16_t)EQEP_getPosition(ENC1_BASE);
+    Length=Length+sprintf((char *)(txData+Length),"\r\nENC1 = %4d ", Value);
+    Value= (int16_t)EQEP_getPosition(ENC2_BASE);
+    Length=Length+sprintf((char *)(txData+Length),"\r\nENC2 = %4d ", Value);
     for (i=Length;i<BUFFER_SIZE;i++)
     {
         txData[i]=0x20;
