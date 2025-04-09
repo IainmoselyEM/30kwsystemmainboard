@@ -107,7 +107,7 @@ void main(void)
     FANinit();
     SysCtl_enablePeripheral(SYSCTL_PERIPH_CLK_TBCLKSYNC);
     IncrementPowerCycles();
-    //Init_CANA();
+    Init_CANA();
 
     //
     // Loop.

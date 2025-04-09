@@ -10,7 +10,7 @@
 #include <board.h>
 #include <SLS_CANBUS.h>
 
-__interrupt void myCAN0(void);
+__interrupt void INT_SLS_CANA_0_ISR(void);
 
 #define MSG_DATA_LENGTH     8                   // All CAN messages are 8 bytes long
 #define Message1            1
@@ -42,14 +42,14 @@ PwrCAN CAN1;
 
 void Init_CANA(void)
 {
-    CAN_enableInterrupt(myCAN0_BASE, CAN_INT_IE0 | CAN_INT_ERROR | CAN_INT_STATUS);
-    CAN_setupMessageObject(myCAN0_BASE, Message1, 0x380, CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(myCAN0_BASE, Message2, (CAN_BASE_ADDRESS + 0x1), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(myCAN0_BASE, Message3, (CAN_BASE_ADDRESS + 0x2), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(myCAN0_BASE, Message4, (CAN_BASE_ADDRESS + 0x3), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(myCAN0_BASE, Message5, (CAN_BASE_ADDRESS + 0x4), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(myCAN0_BASE, Message6, CAN_BASE_ADDRESS, CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_RX, 0, CAN_MSG_OBJ_RX_INT_ENABLE, MSG_DATA_LENGTH);
-    Interrupt_register(INT_CANA0, &myCAN0);
+    CAN_enableInterrupt(SLS_CANA_BASE, CAN_INT_IE0 | CAN_INT_ERROR | CAN_INT_STATUS);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message1, 0x380, CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message2, (CAN_BASE_ADDRESS + 0x1), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message3, (CAN_BASE_ADDRESS + 0x2), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message4, (CAN_BASE_ADDRESS + 0x3), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message5, (CAN_BASE_ADDRESS + 0x4), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message6, CAN_BASE_ADDRESS, CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_RX, 0, CAN_MSG_OBJ_RX_INT_ENABLE, MSG_DATA_LENGTH);
+    Interrupt_register(INT_CANA0, &INT_SLS_CANA_0_ISR);
 }
 
 void PackageCANData(void)
@@ -101,7 +101,7 @@ void TransmitCANMessage(void)
     txMsgData[2] = (CAN1.PwrContMsg2.PwrContInputCurrIin & 0xFF00)>>8;
     txMsgData[1] = CAN1.PwrContMsg2.PwrContOutputCurrIout & 0xFF;
     txMsgData[0] = (CAN1.PwrContMsg2.PwrContOutputCurrIout & 0xFF00)>>8;
-    CAN_sendMessage(myCAN0_BASE, Message2, MSG_DATA_LENGTH,txMsgData);
+    CAN_sendMessage(SLS_CANA_BASE, Message2, MSG_DATA_LENGTH,txMsgData);
 
     // Form data for Message 3 and Transmit(0x363)
     txMsgData[7] = CAN1.PwrContMsg3.PwrContInputVoltageVin & 0xFF;
@@ -113,7 +113,7 @@ void TransmitCANMessage(void)
     txMsgData[1] = CAN1.PwrContMsg3.PwrContOutputVoltageVout & 0xFF;
     txMsgData[0] = (CAN1.PwrContMsg3.PwrContOutputVoltageVout & 0xFF00)>>8;
 
-    CAN_sendMessage(myCAN0_BASE, Message3, MSG_DATA_LENGTH,txMsgData);
+    CAN_sendMessage(SLS_CANA_BASE, Message3, MSG_DATA_LENGTH,txMsgData);
 
     // Form data for Message 4 and Transmit(0x364)
     txMsgData[7] = CAN1.PwrContMsg4.PwrContStatus & 0xFF;
@@ -124,7 +124,7 @@ void TransmitCANMessage(void)
     txMsgData[2] = (CAN1.PwrContMsg4.PwrContBiasSupplyVbias & 0xFF0)>>4;
     txMsgData[1] = CAN1.PwrContMsg4.PwrCont12VBattSoc & 0xFF;
     txMsgData[0] = (CAN1.PwrContMsg4.PwrCont12VBattSoc & 0xF00)>>8;
-    CAN_sendMessage(CANA_BASE, Message4, MSG_DATA_LENGTH,txMsgData);
+    CAN_sendMessage(SLS_CANA_BASE, Message4, MSG_DATA_LENGTH,txMsgData);
 
     // Form data for Message 5 and Transmit(0x365)
     txMsgData[7] = CAN1.PwrContMsg5.PwrContCmdStructure & 0xFF;
@@ -135,7 +135,7 @@ void TransmitCANMessage(void)
     txMsgData[2] = 0;
     txMsgData[1] = 0;
     txMsgData[0] = 0;
-    CAN_sendMessage(myCAN0_BASE, Message5, MSG_DATA_LENGTH,txMsgData);
+    CAN_sendMessage(SLS_CANA_BASE, Message5, MSG_DATA_LENGTH,txMsgData);
 }
 
 //! \brief  Call this function repeatedly to gather and send main CAN data
@@ -206,7 +206,7 @@ void TransmitCANMessage(void)
 //}
 
 
-__interrupt void myCAN0(void)
+__interrupt void INT_SLS_CANA_0_ISR(void)
 {
     uint32_t status=0;
 
@@ -215,7 +215,7 @@ __interrupt void myCAN0(void)
     // Read the CAN-A interrupt status (in the CAN_INT register) to find the
     // cause of the interrupt
     //
-    status = CAN_getInterruptCause(myCAN0_BASE);
+    status = CAN_getInterruptCause(SLS_CANA_BASE);
 
     //
     // If the cause is a controller status interrupt, then get the status.
@@ -231,7 +231,7 @@ __interrupt void myCAN0(void)
         // API documentation for details about the error status bits.
         // The act of reading this status will clear the interrupt.
         //
-        status = CAN_getStatus(myCAN0_BASE);  // Return CAN_ES value.
+        status = CAN_getStatus(SLS_CANA_BASE);  // Return CAN_ES value.
         //
         // Now status = 0x00000010, indicating RxOK.
         //
@@ -257,7 +257,7 @@ __interrupt void myCAN0(void)
         //
         // Get the received message
         //
-        CAN_readMessage(myCAN0_BASE, Message6, rxMsgData);
+        CAN_readMessage(SLS_CANA_BASE, Message6, rxMsgData);
 
         //Set demand current and voltage
        // SetDemandCurrent(((((float)((rxMsgData[1]<<8)|rxMsgData[0]))-IDemandOffset)/IDemandScaling));
@@ -276,7 +276,7 @@ __interrupt void myCAN0(void)
         // message object 1, and the message RX is complete.  Clear the
         // message object interrupt.
         //
-        CAN_clearInterruptStatus(myCAN0_BASE, Message6);
+        CAN_clearInterruptStatus(SLS_CANA_BASE, Message6);
 
         //
         // Since the message was received, clear any error flags.
@@ -296,7 +296,7 @@ __interrupt void myCAN0(void)
     //
     // Clear the global interrupt flag for the CAN interrupt line
     //
-    CAN_clearGlobalInterruptStatus(myCAN0_BASE, CAN_GLOBAL_INT_CANINT0);
+    CAN_clearGlobalInterruptStatus(SLS_CANA_BASE, CAN_GLOBAL_INT_CANINT0);
 
     //
     // Acknowledge this interrupt located in group 9

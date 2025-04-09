@@ -262,7 +262,7 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="Source_Headers/SLS_CANBUS.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

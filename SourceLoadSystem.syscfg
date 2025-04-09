@@ -14,6 +14,8 @@ const adc2           = adc.addInstance();
 const adc3           = adc.addInstance();
 const analog         = scripting.addModule("/driverlib/analog.js", {}, false);
 const analog1        = analog.addInstance();
+const can            = scripting.addModule("/driverlib/can.js", {}, false);
+const can1           = can.addInstance();
 const cmpss          = scripting.addModule("/driverlib/cmpss.js", {}, false);
 const cmpss1         = cmpss.addInstance();
 const cmpss2         = cmpss.addInstance();
@@ -137,6 +139,15 @@ adc3.soc0Trigger       = "ADC_TRIGGER_EPWM1_SOCA";
 adc3.soc0SampleWindow  = 100;
 adc3.soc1Trigger       = "ADC_TRIGGER_EPWM1_SOCA";
 adc3.soc1SampleWindow  = 100;
+
+can1.$name                 = "SLS_CANA";
+can1.enableAutoBusOn       = true;
+can1.registerInterrupts    = true;
+can1.interruptFlags        = ["CAN_INT_IE0"];
+can1.interruptLine         = ["CAN_GLOBAL_INT_CANINT0"];
+can1.can.$assign           = "CANA";
+can1.can.can_rxPin.$assign = "GPIO5";
+can1.can.can_txPin.$assign = "GPIO4";
 
 const divider3       = system.clockTree["AUX_REFDIV"];
 divider3.divideValue = 1;
