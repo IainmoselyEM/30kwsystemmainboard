@@ -10,7 +10,7 @@
 #include <board.h>
 #include <SLS_CANBUS.h>
 
-__interrupt void canaISR(void);
+__interrupt void myCAN0(void);
 
 #define MSG_DATA_LENGTH     8                   // All CAN messages are 8 bytes long
 #define Message1            1
@@ -49,7 +49,7 @@ void Init_CANA(void)
     CAN_setupMessageObject(myCAN0_BASE, Message4, (CAN_BASE_ADDRESS + 0x3), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
     CAN_setupMessageObject(myCAN0_BASE, Message5, (CAN_BASE_ADDRESS + 0x4), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
     CAN_setupMessageObject(myCAN0_BASE, Message6, CAN_BASE_ADDRESS, CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_RX, 0, CAN_MSG_OBJ_RX_INT_ENABLE, MSG_DATA_LENGTH);
-    Interrupt_register(INT_CANA0, &canaISR);
+    Interrupt_register(INT_CANA0, &myCAN0);
 }
 
 void PackageCANData(void)
@@ -206,7 +206,7 @@ void TransmitCANMessage(void)
 //}
 
 
-__interrupt void canaISR(void)
+__interrupt void myCAN0(void)
 {
     uint32_t status=0;
 

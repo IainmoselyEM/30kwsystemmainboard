@@ -14,8 +14,6 @@ const adc2           = adc.addInstance();
 const adc3           = adc.addInstance();
 const analog         = scripting.addModule("/driverlib/analog.js", {}, false);
 const analog1        = analog.addInstance();
-const can            = scripting.addModule("/driverlib/can.js", {}, false);
-const can1           = can.addInstance();
 const cmpss          = scripting.addModule("/driverlib/cmpss.js", {}, false);
 const cmpss1         = cmpss.addInstance();
 const cmpss2         = cmpss.addInstance();
@@ -139,11 +137,6 @@ adc3.soc0Trigger       = "ADC_TRIGGER_EPWM1_SOCA";
 adc3.soc0SampleWindow  = 100;
 adc3.soc1Trigger       = "ADC_TRIGGER_EPWM1_SOCA";
 adc3.soc1SampleWindow  = 100;
-
-can1.$name                 = "myCAN0";
-can1.enableAutoBusOn       = true;
-can1.can.can_rxPin.$assign = "GPIO5";
-can1.can.can_txPin.$assign = "GPIO4";
 
 const divider3       = system.clockTree["AUX_REFDIV"];
 divider3.divideValue = 1;
@@ -301,6 +294,11 @@ epwm2.epwmEventTrigger_EPWM_SOC_A_triggerEventPrescalar        = "1";
 
 eqep1.$name                       = "ENC2";
 eqep1.enableModule                = true;
+eqep1.positionCounterMode         = "EQEP_POSITION_RESET_MAX_POS";
+eqep1.positionCounterMax          = 2000;
+eqep1.swPositionInit              = true;
+eqep1.eqepOperationMode           = "EQEP_CONFIG_CLOCK_DIR";
+eqep1.eqepResolution              = "EQEP_CONFIG_1X_RESOLUTION";
 eqep1.eqep.$assign                = "EQEP3";
 eqep1.eqep.eqep_aPin.$assign      = "GPIO104";
 eqep1.eqep.eqep_bPin.$assign      = "GPIO105";
@@ -308,6 +306,12 @@ eqep1.eqep.eqep_strobePin.$assign = "GPIO106";
 eqep1.eqep.eqep_indexPin.$assign  = "GPIO107";
 
 eqep2.$name                       = "ENC1";
+eqep2.positionCounterMode         = "EQEP_POSITION_RESET_MAX_POS";
+eqep2.positionCounterMax          = 2000;
+eqep2.enableModule                = true;
+eqep2.swPositionInit              = true;
+eqep2.eqepOperationMode           = "EQEP_CONFIG_CLOCK_DIR";
+eqep2.eqepResolution              = "EQEP_CONFIG_1X_RESOLUTION";
 eqep2.eqep.$assign                = "EQEP5";
 eqep2.eqep.eqep_aPin.$assign      = "GPIO108";
 eqep2.eqep.eqep_bPin.$assign      = "GPIO109";
@@ -382,7 +386,6 @@ usb1.usb.usbdpPin.$assign = "GPIO43";
  * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
  * re-solve from scratch.
  */
-can1.can.$suggestSolution                          = "CANA";
 analog1.analog["a10, gpio213Pin"].$suggestSolution = "A10, GPIO213";
 analog1.analog["a14/b14/c14Pin"].$suggestSolution  = "A14/B14/C14";
 analog1.analog["a15/b15/c15Pin"].$suggestSolution  = "A15/B15/C15";
