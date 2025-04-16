@@ -9,7 +9,7 @@
 #define HEADERS_NB_CANBUS_H_
 
 
-void Init_CAN(void);
+void Init_CANA(void);
 void TransmitCANMessage(void);
 void PackageCANData(void);
 void CANMessengerTick(void);
