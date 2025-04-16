@@ -81,6 +81,7 @@ void TwoHzUpdate(void)
     HeartbeatToggle();
     TMP75C_Read_Temp();
     FanControl();
+    PackageCANData();
     TransmitCANMessage();
 }
 

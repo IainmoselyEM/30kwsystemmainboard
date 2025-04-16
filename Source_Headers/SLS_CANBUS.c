@@ -9,6 +9,9 @@
 #include "device.h"
 #include <board.h>
 #include <SLS_CANBUS.h>
+#include <SLS_ADC.h>
+#include <SLS_THERMAL.h>
+#include <SLS_SPI.h>
 
 __interrupt void INT_SLS_CANA_0_ISR(void);
 
@@ -19,13 +22,15 @@ __interrupt void INT_SLS_CANA_0_ISR(void);
 #define Message4            4
 #define Message5            5
 #define Message6            6
+#define Message7            7
+#define Message8            8
 
 #define CANCLOCKRATE        500000              // CANBUS Clock Rate in Hz
 #define CAN_ABO_Time_ms     50U                 // Time to wait after Bus off before executing auto-bus-on feature
 #define CAN_Msg_Period_ms   50U                 // Time between sending of successive CAN message batches
 
 #define Message6RxTimeout_ms    500U            // Max allowable time since last Message6 receipt before an error is flagged
-#define CAN_BASE_ADDRESS 0x361                  // CANBUS Base Address for Data Transmission
+#define CAN_BASE_ADDRESS 0x100                  // CANBUS Base Address for Data Transmission
 
 
 volatile uint32_t errorFlag = 0;
@@ -43,99 +48,138 @@ PwrCAN CAN1;
 void Init_CANA(void)
 {
     CAN_enableInterrupt(SLS_CANA_BASE, CAN_INT_IE0 | CAN_INT_ERROR | CAN_INT_STATUS);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message1, 0x380, CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message2, (CAN_BASE_ADDRESS + 0x1), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message3, (CAN_BASE_ADDRESS + 0x2), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message4, (CAN_BASE_ADDRESS + 0x3), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message5, (CAN_BASE_ADDRESS + 0x4), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message6, CAN_BASE_ADDRESS, CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_RX, 0, CAN_MSG_OBJ_RX_INT_ENABLE, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message1, (CAN_BASE_ADDRESS + 0x1), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message2, (CAN_BASE_ADDRESS + 0x2), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message3, (CAN_BASE_ADDRESS + 0x3), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message4, (CAN_BASE_ADDRESS + 0x4), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message5, (CAN_BASE_ADDRESS + 0x5), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message6, (CAN_BASE_ADDRESS + 0x6), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message7, (CAN_BASE_ADDRESS + 0x7), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message8, (CAN_BASE_ADDRESS + 0x8), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_RX, 0, CAN_MSG_OBJ_RX_INT_ENABLE, MSG_DATA_LENGTH);
     Interrupt_register(INT_CANA0, &INT_SLS_CANA_0_ISR);
 }
 
 void PackageCANData(void)
 {
-//    float CANValue=0;
-//
-//    CANValue=(uint16_t)(GetICommand()*IOUTScaling)+IDEMANDOffset;
-//    CAN1.PwrContMsg2.PwrContCommandCurrIdem = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,IDEMANDbits)));         // Package IDEMAND with offset, scaling and limit checking
-//    CANValue=(GetIIND()*IINDScaling)+IINDOffset;
-//    CAN1.PwrContMsg2.PwrContInductorCurrIind = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,IINDbits)));          // Package IIND with offset, scaling and limit checking
-//    CANValue=(GetIIN()*IINScaling)+IINOffset;
-//    CAN1.PwrContMsg2.PwrContInputCurrIin = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,IINbits)));                // Package IIN with offset, scaling and limit checking
-//    CANValue=(GetIOUT()*IOUTScaling)+IOUTOffset;
-//    CAN1.PwrContMsg2.PwrContOutputCurrIout = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,IOUTbits)));            // Package IOUT with offset, scaling and limit checking
-//    CANValue=(GetVIN()*VINScaling)+VINOffset;
-//    CAN1.PwrContMsg3.PwrContInputVoltageVin = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,VINbits)));             // Package VIN with offset, scaling and limit checking
-//    CANValue=(GetVOUT()*VOUTScaling)+VOUTOffset;
-//    CAN1.PwrContMsg3.PwrContOutputVoltageVout = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,VOUTbits)));         // Package VOUT with offset, scaling and limit checking
-//    CANValue=(GetIBATTCharge()*IBATTScaling)+IBATTOffset;
-//    CAN1.PwrContMsg4.PwrCont12VBattCurrIbatt = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,IBATTbits)));        // Package IBATT with offset, scaling and limit checking
-//    CANValue=(GetVBATT()*VBATTScaling)+VBATTOffset;
-//    CAN1.PwrContMsg4.PwrCont12VSupplyVbatt = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,VBATTbits)));          // Package VBATT with offset, scaling and limit checking
-//    CANValue=(GetSOCBATT()*BATTSOCScaling)+BATTSOCOffset;
-//    CAN1.PwrContMsg4.PwrCont12VBattSoc = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,BATTSOCbits)));          // Package BATTSOC with offset, scaling and limit checking
-//    CANValue=(GetVBIAS()*VBIASScaling)+VBIASOffset;
-//    CAN1.PwrContMsg4.PwrContBiasSupplyVbias = (uint16_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,VBIASbits)));         // Package VBIAS with offset, scaling and limit checking
-//    CAN1.PwrContMsg4.PwrContStatus = (uint8_t)GetCurrentState();
-//    CANValue=(GetCONTTEMP()*CONTTEMPScaling)+CONTTEMPOffset;
-//    CAN1.PwrContMsg5.PwrContControlBrdTemp = (uint8_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,CONTTEMPbits)));     // Package CONTTEMP with offset, scaling and limit checking
-//    CANValue=(GetMODTEMPA()*MODTEMPAScaling)+MODTEMPAOffset;
-//    CAN1.PwrContMsg5.PwrContModATemp = (uint8_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,MODTEMPAbits)));           // Package MODTEMPA with offset, scaling and limit checking
-//    CANValue=(GetMODTEMPB()*MODTEMPBScaling)+MODTEMPBOffset;
-//    CAN1.PwrContMsg5.PwrContModBTemp = (uint8_t)fmaxf(0.0f,fminf(CANValue,powf(2.0f,MODTEMPBbits)));           // Package MODTEMPB with offset, scaling and limit checking
+
+    CAN1.SLSMsg1.IA_L = (uint16_t)((GetIA_L()*256.0f)+128.0f);
+    CAN1.SLSMsg1.IA_IN = (uint16_t)((GetIA_IN()*256.0f)+128.0f);
+    CAN1.SLSMsg1.IA_OUT = (uint16_t)((GetIA_OUT()*256.0f)+128.0f);
+    CAN1.SLSMsg1.VA_OUT = (uint16_t)(GetVA_OUT()*64.0f);
+
+    CAN1.SLSMsg2.IB_L = (uint16_t)((GetIB_L()*256.0f)+128.0f);
+    CAN1.SLSMsg2.IB_IN = (uint16_t)((GetIB_IN()*256.0f)+128.0f);
+    CAN1.SLSMsg2.IB_OUT = (uint16_t)((GetIB_OUT()*256.0f)+128.0f);
+    CAN1.SLSMsg2.VB_OUT = (uint16_t)(GetVB_OUT()*64.0f);
+
+    CAN1.SLSMsg3.VDC = (uint16_t)(GetVDC()*64.0f);
+    CAN1.SLSMsg3.IDC = (uint16_t)((GetIDC()*256.0f)+128.0f);
+    CAN1.SLSMsg3.THERMA = 0;
+    CAN1.SLSMsg3.THERMB = 0;
+
+    CAN1.SLSMsg4.P3V3 = (uint16_t)(Get3V3()*2.048f);
+    CAN1.SLSMsg4.P5V = (uint16_t)(Get5V()*2.048f);
+    CAN1.SLSMsg4.P24V = (uint16_t)(Get24V()*2.048f);
+    CAN1.SLSMsg4.P1V25 = (uint16_t)(GetMidscaleVoltage()*2.048f);
+
+    CAN1.SLSMsg5.P625MV = (uint16_t)(GetQuarterScaleVoltage()*2.048f);
+    CAN1.SLSMsg5.CONTTEMP = (uint16_t)((GetCONTTEMP()*256.0f)+128.0f);
+    CAN1.SLSMsg5.FAN1DUTY = 0;
+    CAN1.SLSMsg5.FAN2DUTY = 0;
+
+    CAN1.SLSMsg6.FAN1TEMP = (uint16_t)((GetFan1LocalTemp()+128.0f)*256.0f);
+    CAN1.SLSMsg6.FAN2TEMP = 0;
+    CAN1.SLSMsg6.FAN1SPEED = (uint16_t)(GetFan1Speed()*2.0f);
+    CAN1.SLSMsg6.FAN2SPEED = 0;
+
+    CAN1.SLSMsg7.FAULTSTATUS = 0;
+    CAN1.SLSMsg7.POWERCYCLES = GetPowerCycles();
+    CAN1.SLSMsg7.STATE=0;
+
+
+
 }
 
 void TransmitCANMessage(void)
 {
     uint16_t txMsgData[8]={0,0,0,0,0,0,0,0};
 
-    // Form data for Message 1 and Transmit(0x361?)
-    //CAN_sendMessage(CANA_BASE, Message1, MSG_DATA_LENGTH,txMsgData);
+    // Form data for Message 1 and Transmit
+    txMsgData[7] = CAN1.SLSMsg1.IA_L & 0xFF;
+    txMsgData[6] = (CAN1.SLSMsg1.IA_L & 0xFF00)>>8;
+    txMsgData[5] = CAN1.SLSMsg1.IA_IN & 0xFF;
+    txMsgData[4] = (CAN1.SLSMsg1.IA_IN & 0xFF00)>>8;
+    txMsgData[3] = CAN1.SLSMsg1.IA_OUT & 0xFF;
+    txMsgData[2] = (CAN1.SLSMsg1.IA_OUT & 0xFF00)>>8;
+    txMsgData[1] = CAN1.SLSMsg1.VA_OUT & 0xFF;
+    txMsgData[0] = (CAN1.SLSMsg1.VA_OUT & 0xFF00)>>8;
+    CAN_sendMessage(SLS_CANA_BASE, Message1, MSG_DATA_LENGTH,txMsgData);
 
-    // Form data for Message 2 and Transmit(0x362)
-    txMsgData[7] = CAN1.PwrContMsg2.PwrContCommandCurrIdem & 0xFF;
-    txMsgData[6] = (CAN1.PwrContMsg2.PwrContCommandCurrIdem & 0xFF00)>>8;
-    txMsgData[5] = CAN1.PwrContMsg2.PwrContInductorCurrIind & 0xFF;
-    txMsgData[4] = (CAN1.PwrContMsg2.PwrContInductorCurrIind & 0xFF00)>>8;
-    txMsgData[3] = CAN1.PwrContMsg2.PwrContInputCurrIin & 0xFF;
-    txMsgData[2] = (CAN1.PwrContMsg2.PwrContInputCurrIin & 0xFF00)>>8;
-    txMsgData[1] = CAN1.PwrContMsg2.PwrContOutputCurrIout & 0xFF;
-    txMsgData[0] = (CAN1.PwrContMsg2.PwrContOutputCurrIout & 0xFF00)>>8;
+    // Form data for Message 2 and Transmit
+    txMsgData[7] = CAN1.SLSMsg2.IB_L & 0xFF;
+    txMsgData[6] = (CAN1.SLSMsg2.IB_L & 0xFF00)>>8;
+    txMsgData[5] = CAN1.SLSMsg2.IB_IN & 0xFF;
+    txMsgData[4] = (CAN1.SLSMsg2.IB_IN & 0xFF00)>>8;
+    txMsgData[3] = CAN1.SLSMsg2.IB_OUT & 0xFF;
+    txMsgData[2] = (CAN1.SLSMsg2.IB_OUT & 0xFF00)>>8;
+    txMsgData[1] = CAN1.SLSMsg2.VB_OUT & 0xFF;
+    txMsgData[0] = (CAN1.SLSMsg2.VB_OUT & 0xFF00)>>8;
     CAN_sendMessage(SLS_CANA_BASE, Message2, MSG_DATA_LENGTH,txMsgData);
 
-    // Form data for Message 3 and Transmit(0x363)
-    txMsgData[7] = CAN1.PwrContMsg3.PwrContInputVoltageVin & 0xFF;
-    txMsgData[6] = (CAN1.PwrContMsg3.PwrContInputVoltageVin & 0xFF00)>>8;
-    txMsgData[5] = CAN1.PwrContMsg3.PwrContMaxPwrLimitPmax & 0xFF;
-    txMsgData[4] = (CAN1.PwrContMsg3.PwrContMaxPwrLimitPmax & 0xFF00)>>8;
-    txMsgData[3] = CAN1.PwrContMsg3.PwrContMaxVoltageVmax & 0xFF;
-    txMsgData[2] = (CAN1.PwrContMsg3.PwrContMaxVoltageVmax & 0xFF00)>>8;
-    txMsgData[1] = CAN1.PwrContMsg3.PwrContOutputVoltageVout & 0xFF;
-    txMsgData[0] = (CAN1.PwrContMsg3.PwrContOutputVoltageVout & 0xFF00)>>8;
-
+    // Form data for Message 3 and Transmit
+    txMsgData[7] = CAN1.SLSMsg3.VDC & 0xFF;
+    txMsgData[6] = (CAN1.SLSMsg3.VDC & 0xFF00)>>8;
+    txMsgData[5] = CAN1.SLSMsg3.IDC & 0xFF;
+    txMsgData[4] = (CAN1.SLSMsg3.IDC & 0xFF00)>>8;
+    txMsgData[3] = CAN1.SLSMsg3.THERMA & 0xFF;
+    txMsgData[2] = (CAN1.SLSMsg3.THERMA & 0xFF00)>>8;
+    txMsgData[1] = CAN1.SLSMsg3.THERMB & 0xFF;
+    txMsgData[0] = (CAN1.SLSMsg3.THERMB & 0xFF00)>>8;
     CAN_sendMessage(SLS_CANA_BASE, Message3, MSG_DATA_LENGTH,txMsgData);
 
-    // Form data for Message 4 and Transmit(0x364)
-    txMsgData[7] = CAN1.PwrContMsg4.PwrContStatus & 0xFF;
-    txMsgData[6] = CAN1.PwrContMsg4.PwrCont12VBattCurrIbatt & 0xFF;
-    txMsgData[5] = (CAN1.PwrContMsg4.PwrCont12VBattCurrIbatt & 0xFF00)>>8;
-    txMsgData[4] = CAN1.PwrContMsg4.PwrCont12VSupplyVbatt & 0xFF;
-    txMsgData[3] = (((CAN1.PwrContMsg4.PwrContBiasSupplyVbias & 0xF)<<4) | ((CAN1.PwrContMsg4.PwrCont12VSupplyVbatt & 0xF00)>>8));
-    txMsgData[2] = (CAN1.PwrContMsg4.PwrContBiasSupplyVbias & 0xFF0)>>4;
-    txMsgData[1] = CAN1.PwrContMsg4.PwrCont12VBattSoc & 0xFF;
-    txMsgData[0] = (CAN1.PwrContMsg4.PwrCont12VBattSoc & 0xF00)>>8;
+    // Form data for Message 4 and Transmit
+    txMsgData[7] = CAN1.SLSMsg4.P3V3 & 0xFF;
+    txMsgData[6] = (CAN1.SLSMsg4.P3V3 & 0xFF00)>>8;
+    txMsgData[5] = CAN1.SLSMsg4.P5V & 0xFF;
+    txMsgData[4] = (CAN1.SLSMsg4.P5V & 0xFF00)>>8;
+    txMsgData[3] = CAN1.SLSMsg4.P24V & 0XFF;
+    txMsgData[2] = (CAN1.SLSMsg4.P24V & 0xFF00)>>8;
+    txMsgData[1] = CAN1.SLSMsg4.P1V25 & 0xFF;
+    txMsgData[0] = (CAN1.SLSMsg4.P1V25 & 0xFF00)>>8;
     CAN_sendMessage(SLS_CANA_BASE, Message4, MSG_DATA_LENGTH,txMsgData);
 
-    // Form data for Message 5 and Transmit(0x365)
-    txMsgData[7] = CAN1.PwrContMsg5.PwrContCmdStructure & 0xFF;
-    txMsgData[6] = CAN1.PwrContMsg5.PwrContControlBrdTemp & 0xFF;
-    txMsgData[5] = CAN1.PwrContMsg5.PwrContModATemp & 0xFF;
-    txMsgData[4] = CAN1.PwrContMsg5.PwrContModBTemp & 0xFF;
-    txMsgData[3] = 0;
+    // Form data for Message 5 and Transmit
+    txMsgData[7] = CAN1.SLSMsg5.P625MV & 0xFF;
+    txMsgData[6] = (CAN1.SLSMsg5.P625MV & 0xFF00)>>8;
+    txMsgData[5] = CAN1.SLSMsg5.CONTTEMP & 0xFF;
+    txMsgData[4] = (CAN1.SLSMsg5.CONTTEMP & 0xFF00)>>8;
+    txMsgData[3] = CAN1.SLSMsg5.FAN1DUTY & 0XFF;
+    txMsgData[2] = (CAN1.SLSMsg5.FAN1DUTY & 0xFF00)>>8;
+    txMsgData[1] = CAN1.SLSMsg5.FAN2DUTY & 0xFF;
+    txMsgData[0] = (CAN1.SLSMsg5.FAN2DUTY & 0xFF00)>>8;
+    CAN_sendMessage(SLS_CANA_BASE, Message5, MSG_DATA_LENGTH,txMsgData);
+
+    // Form data for Message 6 and Transmit
+    txMsgData[7] = CAN1.SLSMsg6.FAN1TEMP & 0xFF;
+    txMsgData[6] = (CAN1.SLSMsg6.FAN1TEMP & 0xFF00)>>8;
+    txMsgData[5] = CAN1.SLSMsg6.FAN2TEMP & 0xFF;
+    txMsgData[4] = (CAN1.SLSMsg6.FAN2TEMP & 0xFF00)>>8;
+    txMsgData[3] = CAN1.SLSMsg6.FAN1SPEED & 0XFF;
+    txMsgData[2] = (CAN1.SLSMsg6.FAN1SPEED & 0xFF00)>>8;
+    txMsgData[1] = CAN1.SLSMsg6.FAN2SPEED & 0xFF;
+    txMsgData[0] = (CAN1.SLSMsg6.FAN2SPEED & 0xFF00)>>8;
+    CAN_sendMessage(SLS_CANA_BASE, Message6, MSG_DATA_LENGTH,txMsgData);
+
+    // Form data for Message 7 and Transmit
+    txMsgData[7] = CAN1.SLSMsg7.FAULTSTATUS & 0xFF;
+    txMsgData[6] = (CAN1.SLSMsg7.FAULTSTATUS & 0xFF00)>>8;
+    txMsgData[5] = CAN1.SLSMsg7.STATE & 0xFF;
+    txMsgData[4] = CAN1.SLSMsg7.POWERCYCLES & 0xFF;
+    txMsgData[3] = (CAN1.SLSMsg7.POWERCYCLES & 0xFF00)>>8;
     txMsgData[2] = 0;
     txMsgData[1] = 0;
     txMsgData[0] = 0;
-    CAN_sendMessage(SLS_CANA_BASE, Message5, MSG_DATA_LENGTH,txMsgData);
+    CAN_sendMessage(SLS_CANA_BASE, Message7, MSG_DATA_LENGTH,txMsgData);
 }
 
 //! \brief  Call this function repeatedly to gather and send main CAN data
