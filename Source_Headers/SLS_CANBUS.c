@@ -33,6 +33,56 @@ __interrupt void INT_SLS_CANA_1_ISR(void);
 #define Message6RxTimeout_ms    500U            // Max allowable time since last Message6 receipt before an error is flagged
 #define CAN_BASE_ADDRESS 0x100                  // CANBUS Base Address for Data Transmission
 
+//DBC Definitions
+
+#define IALGain         256.0f
+#define IALOffset       128.0f
+#define IAINGain        256.0f
+#define IAINOffset      128.0f
+#define IAOUTGain       256.0f
+#define IAOUTOffset     128.0f
+#define VAOUTGain       64.0f
+#define VAOUTOffset     0.0f
+
+#define IBLGain         256.0f
+#define IBLOffset       128.0f
+#define IBINGain        256.0f
+#define IBINOffset      128.0f
+#define IBOUTGain       256.0f
+#define IBOUTOffset     128.0f
+#define VBOUTGain       64.0f
+#define VBOUTOffset     0.0f
+
+#define VDCGain         64.0f
+#define VDCOffset       0.0f
+#define IDCGain         256.0f
+#define IDCOffset       128.0f
+
+#define P3V3Gain        2048.0f
+#define P3V3Offset      0.0f
+#define P5VGain         2048.0f
+#define P5VOffset       0.0f
+#define P24VGain        2048.0f
+#define P24VOffset      0.0f
+#define P1V25Gain       2048.0f
+#define P1V25Offset     0.0f
+#define P625mVGain      2048.0f
+#define P625mVOffset    0.0f
+
+#define CONTTEMPGain    256.0f
+#define CONTTEMPOffset  128.0f
+#define FAN1TEMPGain    256.0f
+#define FAN1TEMPOffset  128.0f
+#define FAN2TEMPGain    256.0f
+#define FAN2TEMPOffset  128.0f
+#define FAN1DutyGain    512.0f
+#define FAN1DutyOffset  0.0f
+#define FAN2DutyGain    512.0f
+#define FAN2DutyOffset  0.0f
+#define FAN1SpeedGain   2.0f
+#define FAN1SpeedOffset 0.0f
+#define FAN2SpeedGain   2.0f
+#define FAN2SpeedOffset 0.0f
 
 volatile uint32_t errorFlag = 0;
 uint16_t rxMsgData[8];
@@ -63,34 +113,34 @@ void Init_CANA(void)
 void PackageCANData(void)
 {
 
-    CAN1.SLSMsg1.IA_L = (uint16_t)((GetIA_L()*256.0f)+128.0f);
-    CAN1.SLSMsg1.IA_IN = (uint16_t)((GetIA_IN()*256.0f)+128.0f);
-    CAN1.SLSMsg1.IA_OUT = (uint16_t)((GetIA_OUT()*256.0f)+128.0f);
-    CAN1.SLSMsg1.VA_OUT = (uint16_t)(GetVA_OUT()*64.0f);
+    CAN1.SLSMsg1.IA_L = (uint16_t)((GetIA_L()+IALOffset)*IALGain);
+    CAN1.SLSMsg1.IA_IN = (uint16_t)((GetIA_IN()+IAINOffset)*IAINGain);
+    CAN1.SLSMsg1.IA_OUT = (uint16_t)((GetIA_OUT()+IAOUTOffset)*IAOUTGain);
+    CAN1.SLSMsg1.VA_OUT = (uint16_t)((GetVA_OUT()+VAOUTOffset)*VAOUTGain);
 
-    CAN1.SLSMsg2.IB_L = (uint16_t)((GetIB_L()*256.0f)+128.0f);
-    CAN1.SLSMsg2.IB_IN = (uint16_t)((GetIB_IN()*256.0f)+128.0f);
-    CAN1.SLSMsg2.IB_OUT = (uint16_t)((GetIB_OUT()*256.0f)+128.0f);
-    CAN1.SLSMsg2.VB_OUT = (uint16_t)(GetVB_OUT()*64.0f);
+    CAN1.SLSMsg2.IB_L = (uint16_t)((GetIB_L()+IBLOffset)*IBLGain);
+    CAN1.SLSMsg2.IB_IN = (uint16_t)((GetIB_IN()+IBINOffset)*IBINGain);
+    CAN1.SLSMsg2.IB_OUT = (uint16_t)((GetIB_OUT()+IBOUTOffset)*IBOUTGain);
+    CAN1.SLSMsg2.VB_OUT = (uint16_t)((GetVB_OUT()+VBOUTOffset)*VBOUTGain);
 
-    CAN1.SLSMsg3.VDC = (uint16_t)(GetVDC()*64.0f);
-    CAN1.SLSMsg3.IDC = (uint16_t)((GetIDC()*256.0f)+128.0f);
+    CAN1.SLSMsg3.VDC = (uint16_t)((GetVDC()+VDCOffset)*VDCGain);
+    CAN1.SLSMsg3.IDC = (uint16_t)((GetIDC()+IDCOffset)*IDCGain);
     CAN1.SLSMsg3.THERMA = 0;
     CAN1.SLSMsg3.THERMB = 0;
 
-    CAN1.SLSMsg4.P3V3 = (uint16_t)(Get3V3()*2.048f);
-    CAN1.SLSMsg4.P5V = (uint16_t)(Get5V()*2.048f);
-    CAN1.SLSMsg4.P24V = (uint16_t)(Get24V()*2.048f);
-    CAN1.SLSMsg4.P1V25 = (uint16_t)(GetMidscaleVoltage()*2.048f);
+    CAN1.SLSMsg4.P3V3 = (uint16_t)((Get3V3()+P3V3Offset)*P3V3Gain);
+    CAN1.SLSMsg4.P5V = (uint16_t)((Get5V()+P5VOffset)*P5VGain);
+    CAN1.SLSMsg4.P24V = (uint16_t)((Get24V()+P24VOffset)*P24VGain);
+    CAN1.SLSMsg4.P1V25 = (uint16_t)((GetMidscaleVoltage()+P1V25Offset)*P1V25Gain);
 
-    CAN1.SLSMsg5.P625MV = (uint16_t)(GetQuarterScaleVoltage()*2.048f);
-    CAN1.SLSMsg5.CONTTEMP = (uint16_t)((GetCONTTEMP()*256.0f)+128.0f);
+    CAN1.SLSMsg5.P625MV = (uint16_t)((GetQuarterScaleVoltage()+P625mVOffset)*P625mVGain);
+    CAN1.SLSMsg5.CONTTEMP = (uint16_t)((GetCONTTEMP()+CONTTEMPOffset)*CONTTEMPGain);
     CAN1.SLSMsg5.FAN1DUTY = 0;
     CAN1.SLSMsg5.FAN2DUTY = 0;
 
-    CAN1.SLSMsg6.FAN1TEMP = (uint16_t)((GetFan1LocalTemp()+128.0f)*256.0f);
+    CAN1.SLSMsg6.FAN1TEMP = (uint16_t)((GetFan1LocalTemp()+FAN1TEMPOffset)*FAN1TEMPGain);
     CAN1.SLSMsg6.FAN2TEMP = 0;
-    CAN1.SLSMsg6.FAN1SPEED = (uint16_t)(GetFan1Speed()*2.0f);
+    CAN1.SLSMsg6.FAN1SPEED = (uint16_t)((GetFan1Speed()+FAN1SpeedOffset)*FAN1SpeedGain);
     CAN1.SLSMsg6.FAN2SPEED = 0;
 
     CAN1.SLSMsg7.FAULTSTATUS = 0;

@@ -18,6 +18,8 @@
 #include <SLS_UART.h>
 #include <SLS_THERMAL.h>
 
+#define VtomV   1000.0f
+
 //
 // DMA data sections
 //
@@ -91,9 +93,9 @@ void TransmitUartMessage(void)
     Length=Length+sprintf((char *)(txData+Length),TIMESTAMP);
     Value = (int16_t)GetCONTTEMP();
     Length=Length+sprintf((char *)(txData+Length),"\r\nControl Board Temperature = %d degC", Value);
-    Value= (int16_t)GetMidscaleVoltage();
+    Value= (int16_t)(GetMidscaleVoltage()*VtomV);
     Length=Length+sprintf((char *)(txData+Length),"\r\nMidscale Voltage =  %4d mV", Value);
-    Value= (int16_t)GetQuarterScaleVoltage();
+    Value= (int16_t)(GetQuarterScaleVoltage()*VtomV);
     Length=Length+sprintf((char *)(txData+Length),"\r\nQuarterscale Voltage =  %4d mV", Value);
     Value= (int16_t)GetIA_IN();
     Length=Length+sprintf((char *)(txData+Length),"\r\nSide A Input Current =  %4d A", Value);
@@ -115,11 +117,11 @@ void TransmitUartMessage(void)
     Length=Length+sprintf((char *)(txData+Length),"\r\nCommon DC Link Current =  %4d A", Value);
     Value= (int16_t)GetVDC();
     Length=Length+sprintf((char *)(txData+Length),"\r\nCommon DC Link Voltage =  %4d V", Value);
-    Value= (int16_t)Get3V3();
+    Value= (int16_t)(Get3V3()*VtomV);
     Length=Length+sprintf((char *)(txData+Length),"\r\n3V3 Rail Voltage =  %4d mV", Value);
-    Value= (int16_t)Get5V();
+    Value= (int16_t)(Get5V()*VtomV);
     Length=Length+sprintf((char *)(txData+Length),"\r\n5V Rail Voltage =  %4d mV", Value);
-    Value= (int16_t)Get24V();
+    Value= (int16_t)(Get24V()*VtomV);
     Length=Length+sprintf((char *)(txData+Length),"\r\n24V Rail Voltage =  %4d mV", Value);
     Value= (int16_t)GetFan1Speed();
     Length=Length+sprintf((char *)(txData+Length),"\r\nFan 1 Speed =  %5d RPM", Value);

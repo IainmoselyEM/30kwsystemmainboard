@@ -45,16 +45,16 @@ float THERMA_pu=0;
 float THERMB_pu=0;
 
 
-// Midscale voltage in mV
+// Midscale voltage
 float GetMidscaleVoltage(void)
 {
-    return(REF1V25_BUF_pu*QUARTERSCALE_FS*1000.0f);
+    return(REF1V25_BUF_pu*QUARTERSCALE_FS);
 }
 
-// Quarterscale voltage in mV
+// Quarterscale voltage
 float GetQuarterScaleVoltage(void)
 {
-    return(REF625mV_pu*MIDSCALE_FS*1000.0f);
+    return(REF625mV_pu*MIDSCALE_FS);
 }
 
 // Power Stage A Inductor Current in A
@@ -93,16 +93,16 @@ float GetIDC(void)
     return(IDC_pu*IDC_FS);
 }
 
-// 3V3 Rail Voltage mV
+// 3V3 Rail Voltage V
 float Get3V3(void)
 {
-    return(RAIL3V3_pu*RAIL3V3_FS*1000.0f);
+    return(RAIL3V3_pu*RAIL3V3_FS);
 }
 
-// 5V Rail Voltage mV
+// 5V Rail Voltage V
 float Get5V(void)
 {
-    return(RAIL5V_pu*RAIL5V_FS*1000.0f);
+    return(RAIL5V_pu*RAIL5V_FS);
 }
 
 // Power Stage B Inductor Current in A
@@ -129,10 +129,10 @@ float GetVB_OUT(void)
     return(VB_OUT_pu*VB_OUT_FS);
 }
 
-// 24V Rail Voltage mV
+// 24V Rail Voltage
 float Get24V(void)
 {
-    return(RAIL24V_pu*RAIL24V_FS*1000.0f);
+    return(RAIL24V_pu*RAIL24V_FS);
 }
 
 
