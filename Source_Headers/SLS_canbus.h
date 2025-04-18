@@ -77,6 +77,12 @@ typedef struct __attribute ((aligned(4)))
     uint32_t POWERCYCLES : 16;
 }SLSMsg7;
 
+typedef struct __attribute ((aligned(4)))
+{
+    uint32_t REQUESTSTATE : 8;
+    uint32_t FAN1DUTY : 8;
+}SLSMsg8;
+
 typedef struct __attribute__((aligned(4)))
 {
     SLSMsg1 SLSMsg1;
@@ -86,6 +92,7 @@ typedef struct __attribute__((aligned(4)))
     SLSMsg5 SLSMsg5;
     SLSMsg6 SLSMsg6;
     SLSMsg7 SLSMsg7;
+    SLSMsg8 SLSMsg8;
 }PwrCAN;
 
 

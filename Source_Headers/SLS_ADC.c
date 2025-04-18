@@ -12,17 +12,17 @@
 
 #define MIDSCALE_FS    2.5f
 #define QUARTERSCALE_FS 2.5f
-#define IA_L_FS 234.367676f
-#define IA_OUT_FS 234.367676f
-#define IA_IN_FS 234.367676f
+#define IA_L_FS 407.6086957f
+#define IA_OUT_FS 407.6086957f
+#define IA_IN_FS 407.6086957f
 #define VA_OUT_FS 1251.25f
 #define VDC_FS 1251.25f
-#define IDC_FS 58.6029067f
+#define IDC_FS 407.6086957f
 #define RAIL3V3_FS 3.775f
 #define RAIL5V_FS 7.5f
-#define IB_L_FS 234.367676f
-#define IB_OUT_FS 234.367676f
-#define IB_IN_FS 234.367676f
+#define IB_L_FS 407.6086957f
+#define IB_OUT_FS 407.6086957f
+#define IB_IN_FS 407.6086957f
 #define VB_OUT_FS 1251.25f
 #define RAIL24V_FS 27.5f
 

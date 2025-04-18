@@ -49,6 +49,11 @@ float GetCONTTEMP(void)
     return(Value);
 }
 
+void SetFan1DutyCycle(float DutyCycle)
+{
+    FAN1DUTYCYCLE=DutyCycle;
+}
+
 void FanControl(void)
 {
     FAN1TEMP=((float)FANTEMPLOCAL(FAN1ADD))/TMPScalingFactor;
@@ -58,7 +63,8 @@ void FanControl(void)
     FAN1StatusReg2=I2CReadSingleByte(POWERBOARD_BASE, 0x03, FAN1ADD);
     FAN2StatusReg1=I2CReadSingleByte(POWERBOARD_BASE, 0x02, FAN2ADD);
     FAN2StatusReg2=I2CReadSingleByte(POWERBOARD_BASE, 0x03, FAN2ADD);
-    SetFanDutyCycle(ContTemp, FAN1ADD);
+    ProgramFanDutyCycle(FAN1DUTYCYCLE, FAN1ADD);
+    ProgramFanDutyCycle(FAN1DUTYCYCLE, FAN2ADD);
 }
 
 float GetFan1LocalTemp()
@@ -100,7 +106,7 @@ int16_t FANTEMPLOCAL(uint16_t I2CAddress)
     return (int16_t)Value;
 }
 
-void SetFanDutyCycle(float DutyCycle, uint16_t I2CAddress)
+void ProgramFanDutyCycle(float DutyCycle, uint16_t I2CAddress)
 {
     I2CWriteSingleByte(POWERBOARD_BASE, DCYReg, I2CAddress, (uint16_t)(2.55f*DutyCycle));
 }

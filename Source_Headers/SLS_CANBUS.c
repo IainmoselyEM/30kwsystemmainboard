@@ -14,6 +14,7 @@
 #include <SLS_SPI.h>
 
 __interrupt void INT_SLS_CANA_0_ISR(void);
+__interrupt void INT_SLS_CANA_1_ISR(void);
 
 #define MSG_DATA_LENGTH     8                   // All CAN messages are 8 bytes long
 #define Message1            1
@@ -48,14 +49,14 @@ PwrCAN CAN1;
 void Init_CANA(void)
 {
     CAN_enableInterrupt(SLS_CANA_BASE, CAN_INT_IE0 | CAN_INT_ERROR | CAN_INT_STATUS);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message1, (CAN_BASE_ADDRESS + 0x1), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message2, (CAN_BASE_ADDRESS + 0x2), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message3, (CAN_BASE_ADDRESS + 0x3), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message4, (CAN_BASE_ADDRESS + 0x4), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message5, (CAN_BASE_ADDRESS + 0x5), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message6, (CAN_BASE_ADDRESS + 0x6), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message7, (CAN_BASE_ADDRESS + 0x7), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
-    CAN_setupMessageObject(SLS_CANA_BASE, Message8, (CAN_BASE_ADDRESS + 0x8), CAN_MSG_FRAME_EXT, CAN_MSG_OBJ_TYPE_RX, 0, CAN_MSG_OBJ_RX_INT_ENABLE, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message1, (CAN_BASE_ADDRESS + 0x1), CAN_MSG_FRAME_STD, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message2, (CAN_BASE_ADDRESS + 0x2), CAN_MSG_FRAME_STD, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message3, (CAN_BASE_ADDRESS + 0x3), CAN_MSG_FRAME_STD, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message4, (CAN_BASE_ADDRESS + 0x4), CAN_MSG_FRAME_STD, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message5, (CAN_BASE_ADDRESS + 0x5), CAN_MSG_FRAME_STD, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message6, (CAN_BASE_ADDRESS + 0x6), CAN_MSG_FRAME_STD, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message7, (CAN_BASE_ADDRESS + 0x7), CAN_MSG_FRAME_STD, CAN_MSG_OBJ_TYPE_TX, 0, CAN_MSG_OBJ_NO_FLAGS, MSG_DATA_LENGTH);
+    CAN_setupMessageObject(SLS_CANA_BASE, Message8, (CAN_BASE_ADDRESS + 0x8), CAN_MSG_FRAME_STD, CAN_MSG_OBJ_TYPE_RX, 0, CAN_MSG_OBJ_RX_INT_ENABLE, MSG_DATA_LENGTH);
     Interrupt_register(INT_CANA0, &INT_SLS_CANA_0_ISR);
 }
 
@@ -296,13 +297,16 @@ __interrupt void INT_SLS_CANA_0_ISR(void)
     // Check if the cause is the CAN-A receive message object IDEMAND_MSG_OBJ_ID . Will be skipped
     // in the first iteration of every ISR execution
     //
-    else if(status == Message6)
+    else if(status == Message8)
     {
         //
         // Get the received message
         //
-        CAN_readMessage(SLS_CANA_BASE, Message6, rxMsgData);
+        CAN_readMessage(SLS_CANA_BASE, Message8, rxMsgData);
 
+        CAN1.SLSMsg8.REQUESTSTATE=rxMsgData[0];
+        CAN1.SLSMsg8.FAN1DUTY=rxMsgData[1];
+        SetFan1DutyCycle((float)CAN1.SLSMsg8.FAN1DUTY);
         //Set demand current and voltage
        // SetDemandCurrent(((((float)((rxMsgData[1]<<8)|rxMsgData[0]))-IDemandOffset)/IDemandScaling));
        // SetVoltage((float)((rxMsgData[5]<<8)|rxMsgData[4]) / VDemandScaling);
@@ -320,7 +324,7 @@ __interrupt void INT_SLS_CANA_0_ISR(void)
         // message object 1, and the message RX is complete.  Clear the
         // message object interrupt.
         //
-        CAN_clearInterruptStatus(SLS_CANA_BASE, Message6);
+        CAN_clearInterruptStatus(SLS_CANA_BASE, Message8);
 
         //
         // Since the message was received, clear any error flags.
@@ -346,5 +350,10 @@ __interrupt void INT_SLS_CANA_0_ISR(void)
     // Acknowledge this interrupt located in group 9
     //
     Interrupt_clearACKGroup(INTERRUPT_ACK_GROUP9);
+}
+
+__interrupt void INT_SLS_CANA_1_ISR(void)
+{
+
 }
 
