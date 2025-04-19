@@ -17,7 +17,9 @@ float ContTemp = 0;                         // Control board temperature in Deg 
 float FAN1TEMP = 0;                       // Power Stage #1 Transformer Temperature
 float FAN2TEMP = 0;                       // Power Stage #2 Transformer Temperature
 uint16_t FAN1SPEED = 0;
+uint16_t FAN2SPEED = 0;
 float FAN1DUTYCYCLE = 0.0f;
+float FAN2DUTYCYCLE = 0.0f;
 
 uint16_t FAN1StatusReg1=0;
 uint16_t FAN1StatusReg2=0;
@@ -59,17 +61,23 @@ void FanControl(void)
     FAN1TEMP=((float)FANTEMPLOCAL(FAN1ADD))/TMPScalingFactor;
     FAN2TEMP=((float)FANTEMPLOCAL(FAN2ADD))/TMPScalingFactor;
     FAN1SPEED=ReadFanSpeed(FAN1ADD);
+    FAN2SPEED=ReadFanSpeed(FAN2ADD);
     FAN1StatusReg1=I2CReadSingleByte(POWERBOARD_BASE, 0x02, FAN1ADD);
     FAN1StatusReg2=I2CReadSingleByte(POWERBOARD_BASE, 0x03, FAN1ADD);
     FAN2StatusReg1=I2CReadSingleByte(POWERBOARD_BASE, 0x02, FAN2ADD);
     FAN2StatusReg2=I2CReadSingleByte(POWERBOARD_BASE, 0x03, FAN2ADD);
     ProgramFanDutyCycle(FAN1DUTYCYCLE, FAN1ADD);
-    ProgramFanDutyCycle(FAN1DUTYCYCLE, FAN2ADD);
+    ProgramFanDutyCycle(FAN2DUTYCYCLE, FAN2ADD);
 }
 
 float GetFan1LocalTemp()
 {
     return ((float)FAN1TEMP);
+}
+
+float GetFan2LocalTemp()
+{
+    return ((float)FAN2TEMP);
 }
 
 float GetFan1Speed(void)
@@ -81,6 +89,18 @@ float GetFan1Speed(void)
     else
     {
         return(6000000.0f/((float)FAN1SPEED));
+    }
+}
+
+float GetFan2Speed(void)
+{
+    if(FAN2SPEED==0xFFFF)
+    {
+        return 0;
+    }
+    else
+    {
+        return(6000000.0f/((float)FAN2SPEED));
     }
 }
 
