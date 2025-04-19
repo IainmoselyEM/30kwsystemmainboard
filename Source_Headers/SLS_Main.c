@@ -67,6 +67,7 @@
 #include <SLS_UART.h>
 #include <SLS_THERMAL.h>
 #include <SLS_CANBUS.h>
+#include <SLS_States.h>
 
 //
 // Main
@@ -112,13 +113,37 @@ void main(void)
     //
     // Loop.
     //
-    for(;;)
-    {
-        //Run the UART messenger
+    while(1)
+        {
+
+            switch(GetCurrentState())              // Case structure to support movement between state machines
+            {
+                case Standby:
+                SetFan2DutyCycle(50.0f);
+                break;
+
+                case Running:
+                SetFan2DutyCycle(0.0f);
+                SetFan1DutyCycle(100.0f);
+                break;
+
+                case Fault:
+                SetFan2DutyCycle(20.0f);
+                SetFan1DutyCycle(20.0f);
+                break;
+
+                case Stop:
+                SetFan1DutyCycle(0.0f);
+                SetFan2DutyCycle(0.0f);
+                break;
+
+            }
+       //Run the UART messenger
         CheckTwoHz();
 
     }
 }
+
 
 
 //

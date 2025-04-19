@@ -25,6 +25,7 @@ float GetFan1LocalTemp();
 float GetFan2LocalTemp();
 void ProgramFanDutyCycle(float DutyCycle, uint16_t I2CAddress);
 void SetFan1DutyCycle(float DutyCycle);
+void SetFan2DutyCycle(float DutyCycle);
 float GetFan2Speed(void);
 
 #endif /* HEADERS_PE_I2C_H_ */

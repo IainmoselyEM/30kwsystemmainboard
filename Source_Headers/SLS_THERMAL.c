@@ -56,6 +56,11 @@ void SetFan1DutyCycle(float DutyCycle)
     FAN1DUTYCYCLE=DutyCycle;
 }
 
+void SetFan2DutyCycle(float DutyCycle)
+{
+    FAN2DUTYCYCLE=DutyCycle;
+}
+
 void FanControl(void)
 {
     FAN1TEMP=((float)FANTEMPLOCAL(FAN1ADD))/TMPScalingFactor;
